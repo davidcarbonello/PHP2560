@@ -1,0 +1,26 @@
+P-value Shiny App
+
+```{r}
+library(shiny)
+ui <- fluidPage(  
+  sliderInput(inputId = "Z", 
+              label = "Set Z score", 
+              value = 0, min = -5, max = 5),
+  textOutput(outputId = "Prob"),
+  textOutput(outputId = "Pvalue"),
+  plotOutput(outputId = "curve")
+)
+
+server <- function(input, output) {
+  
+  output$Prob<-renderText("P-Value")
+  output$Pvalue<-renderText({1-pnorm(input$Z)
+  })
+  output$curve<-renderPlot({
+    curve(1/sqrt(2*pi)*exp(-(x^2)/2),from=-5,to=5)
+    abline(v=input$Z,col="red")
+  })
+}
+
+shinyApp(ui = ui, server = server)
+```

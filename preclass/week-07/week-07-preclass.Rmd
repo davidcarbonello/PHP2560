@@ -1,0 +1,299 @@
+---
+title: "Simulations Pre-Class Project"
+date: "Due March 13, 2017 at 5:00pm"
+output:
+  html_document
+
+
+---
+
+<style type="text/css">
+.table {
+
+    width: 80%;
+    margin-left:10%; 
+    margin-right:10%;
+}
+</style>
+```{r,setup, echo=FALSE, cache=TRUE}
+## numbers >= 10^5 will be denoted in scientific notation,
+## and rounded to 2 digits
+options(scipen = 3, digits = 3)
+```
+
+
+
+
+#Project Goals:
+
+
+
+
+With this project we will simulate a famoues probability problem. This will not require knowledge of probability or statistics but only the logic to follow the steps in order to simulate this problem. This is one way to solve problems by using the computer. 
+
+ 1. **Gambler's Ruin**: Suppose you have a bankroll of $1000 and make bets of $100 on a fair game. By simulating the outcome directly for at most 5000 iterations of the game (or hands), estimate:
+    a. the probability that you have "busted" (lost all your money) by the time you have placed your one hundredth bet. 
+    
+```{r}
+
+#prob= # times you loose all your money after 100 bets/number of times you ran experiment(5000)
+#Need to record how many times you loose all your money after 100 bets
+
+# create function 
+Gamblers_Ruin<-function(bankroll,bust=0,p=.5){
+  #initiate the number of bets 
+  bets<-0
+  # while the bankroll is not zero and you still have bets play game
+  while(bankroll>bust & bets<=100){
+    #create a win or loose with rbinom, and you bets increase by 1, meaning youve plays a hand 
+    result<-rbinom(1, 1,p)
+    bets<-bets+1
+  if(result==1){
+    # iy you win bankroll increases by 100, otherwise decreases by 100
+    bankroll<-bankroll+100}
+  else{
+    bankroll=bankroll-100}
+  }
+  if(bankroll==bust){
+    return("Bust")
+    #if you run out of money return bust
+  }else {
+    #if after the 100 hands you still have money return still alive 
+      return("Still Alive")}
+}
+
+Results<-replicate(5000,Gamblers_Ruin(bankroll = 1000,bust = 0))# replicate the function 5000 times 
+NumberStillAlive<-length(which(Results=="Bust")) # take all the times you busted 
+NumberStillAlive/5000# divide by the number of times you played to get prob 
+
+
+
+```
+    
+    
+    b. the probability that you have busted by the time you have placed your five hundredth bet by simulating the outcome directly. 
+```{r}
+# create gambler ruins function, same process as A but not bets is 500 instead of 100 
+Gamblers_Ruin<-function(bankroll,bust=0,p=.5){
+  bets<-0
+  while(bankroll>bust & bets<=500){
+    result<-rbinom(1, 1,p)
+    bets<-bets+1
+  if(result==1){
+    bankroll<-bankroll+100}
+  else{
+    bankroll=bankroll-100}
+  }
+  if(bankroll==bust){
+    return("Bust")
+  }else {
+      return("Still Alive")}
+}
+Results<-replicate(5000,Gamblers_Ruin(bankroll = 1000,bust = 0))
+NumberStillAlive<-length(which(Results=="Bust"))
+NumberStillAlive/5000
+
+```
+    
+    c. the mean time you go bust, given that you go bust within the first 5000 hands.
+```{r}
+
+
+#empty vector for games that we want to fill with number of bets till bust for each games 
+bets_till_bust<-c()
+#number of hands
+bets<-5000
+#run the game 5000
+for(j in 1:5000){
+  #starting amount of money for each game
+  bankroll<-1000
+  for( i in 1:bets){
+    #for each bet, create a win loose from bin with p=.5
+    result<-rbinom(1,1,.5)
+    #if 1 you win and go up 100
+    if(result==1){
+      bankroll=bankroll+100}
+    # else loose and go down 100
+    else{
+      bankroll=bankroll-100}
+    #if bankroll is empty add the number of bets it took in the vector, break the loop through bets and play     game again
+    if(bankroll==0){
+      bets_till_bust<-c(bets_till_bust,i)
+      break}
+    }
+}
+#take mean of the vector that has all the number of bets till bust for each game 
+mean(bets_till_bust)
+
+```
+  
+    d. the mean and variance of your bankroll after 100 hands (including busts).
+```{r}
+#empty vector to record your results of each game 
+Results<-c()
+bets<-100
+# play game 5000 times 
+for(j in 1:5000){
+  #starting banroll for each game
+  bankroll<-1000
+  for( i in 1:bets){
+    result<-rbinom(1,1,.5)
+    if(result==1){
+      bankroll=bankroll+100}
+    else{
+      bankroll=bankroll-100}
+    if(bankroll==0 | i==100){
+      Results<-c(Results, bankroll)
+      break}
+    }
+  }
+print(paste("The mean after 100 hands is:", mean(Results), "The variance after 100 hands is:", round(var(Results))))
+
+
+```
+
+
+
+    e. the mean and variance of your bankroll after 500 hands (including busts).
+```{r}
+
+#empty vector to record your results of each game 
+Results<-c()
+bets<-500
+# play game 5000 times 
+for(j in 1:5000){
+  #starting bankroll for each game
+  bankroll<-1000
+  for( i in 1:bets){
+    result<-rbinom(1,1,.5)
+    if(result==1){
+      bankroll=bankroll+100}
+    else{
+      bankroll=bankroll-100}
+    # if bankroll is 0 or you've reached 500 hands add your current bankroll to the results vector
+    if(bankroll==0 | i==500){
+      Results<-c(Results, bankroll)
+      break}
+    }
+  }
+# take the mean and variance of the vector and print it
+print(paste("The mean after 500 hands is:", mean(Results), "The variance after 500 hands is:", round(var(Results))))
+
+```
+    
+ 
+Note: you *must* stop playing if your player has gone bust. How will you handle this in the `for` loop?
+
+2. **Markov Chains**. Suppose you have a game where the probability of winning on your first hand is 48%; each time you win, that probability goes up by one percentage point for the next game (to a maximum of 100%, where it must stay), and each time you lose, it goes back down to 48%. Assume you cannot go bust and that the size of your wager is a constant $100.
+   a. Is this a fair game? Simulate one hundred thousand sequential hands to determine the size of your return. Then repeat this simulation 99 more times to get a range of values to calculate the expectation.
+    
+```{r}
+# initial vector to record the returns for each game, where there are 100000 hands in the game
+Returns<-c()
+#simulate 100 games
+for(j in 1:100){
+# starting point is .48 of winning, and 0 dollars
+p=.48
+Money=0
+# iterate through 100000 hands 
+  for(i in 1:100000){
+    #if rbinom produces a 1, then increase prob by .01 and Money increases by 100
+    result<-rbinom(1,1,p)
+    if(result==1){
+     p=p+.01
+      Money=Money+100}
+    # otherwise, p=.48, and money decreases by 100
+    else{
+      p=.48
+      Money=Money-100}
+    # after all hands, add the money to the returns vector, and replay game
+    if(i==100000){
+    Returns<-c(Returns,Money)
+    break}
+  }
+}
+#take the mean of the returns vector to get average returns 
+mean(Returns)
+
+```
+    b. Repeat this process but change the starting probability to a new value within 2% either way. Get the expected return after 100 repetitions. Keep exploring until you have a return value that is as fair as you can make it. Can you do this automatically?
+```{r}
+# Create function that returns the mean of a simulation for a given probability and number of hands and increment
+# essentially same as problem a
+average_returns<-function(prob,sim,hands,incre){
+  Returns<-c()
+  for(j in sim){
+    p=prob
+    Money=0
+    for(i in 1:hands){
+      result<-rbinom(1,1,p)
+      if(result==1){
+        p=p+incre
+        Money=Money+100}
+      else{
+        p=prob
+        Money=Money-100}
+     if(i==hands){
+        Returns<-c(Returns,Money)
+        break}
+      }
+    return(mean(Returns))
+  }
+}
+
+# create a sequence for probabilities from .46 to .49 by .005
+p_sequence<-seq(.46,.49,.005)
+
+#create an empty vector that will be filled by the average returns associated with each probability
+probs<-c()
+# iterate through each probability in the p_sequence
+for(probability in p_sequence){
+  #for each probability, record the mean that is returned in the vector prbs
+  answer<-average_returns(prob=probability,sim = 100,hands = 100000,incre = .01)
+  probs<-c(probs,answer)
+}
+#observe the vector probs, and see at what probability the avg returns go from positive to negative 
+probs
+#inbetween .485 and .49 is average returns of 0,  which would be a fair game 
+
+#Messing around in that range trying .48979 as probability
+average_returns(prob = .48979,sim = 100,hands = 100000,incre = .01)
+
+```
+  
+
+    c. Repeat again, keeping the initial probability at 48%, but this time change the probability increment to a value different from 1%. Get the expected return after 100 repetitions. Keep changing this value until you have a return value that is as fair as you can make it. 
+```{r}
+# create empty vector to store the average returns in 
+Returns<-c()
+# 100 simiulations
+for(j in 1:100){
+# starting prob is always .48 and you are even (money=0)
+p=.48
+Money=0
+# 100 hands 
+  for(i in 1:100){
+    result<-rbinom(1,1,p)
+    if(result==1){
+      # if you win get 100 and prob increases .0182
+      Money=Money+100
+        if(p+.0182<=1){
+        p=p+.0182}
+    }else{
+      #otherwise prob=.48
+      p=.48
+      Money=Money-100}
+    if(i==100){
+      #after 100 hands add your returns to the vector and play game again
+    Returns<-c(Returns,Money)
+    break}
+  }
+}
+mean(Returns)
+
+#take the mean of this vector to get average returns for 100 hands in different games 
+```
+
+
+    
+    
