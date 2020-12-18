@@ -1,1 +1,4 @@
-# PHP2560-preclass-work
+# PHP2560
+
+Statistical Computing in R 
+
