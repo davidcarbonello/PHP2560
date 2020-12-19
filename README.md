@@ -1,4 +1,4 @@
 # PHP2560
 
-Statistical Computing in R 
+This repository contains preclass homework assignments from Statistical Computing in R (PHP2560) 
 
